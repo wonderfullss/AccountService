@@ -4,8 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @ControllerAdvice
@@ -20,8 +24,51 @@ public class ControllerExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 e.getMessage(),
-                request.getDescription(false));
+                ((ServletWebRequest) request).getRequest().getRequestURI());
 
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(passwordError.class)
+    public ResponseEntity<CustomErrorMessage> handleFlightNotFound(
+            passwordError e, WebRequest request) {
+
+        CustomErrorMessage body = new CustomErrorMessage(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                e.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(paymentGetError.class)
+    public ResponseEntity<CustomErrorMessage> handleFlightNotFound(
+            paymentGetError e, WebRequest request) {
+
+        CustomErrorMessage body = new CustomErrorMessage(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                e.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class, org.hibernate.exception.ConstraintViolationException.class})
+    public void springHandleNotFound(HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value());  }
+
+    @ExceptionHandler(paymentsUpdateError.class)
+    public ResponseEntity<CustomErrorMessage> handleFlightNotFound(
+            paymentsUpdateError e, WebRequest request) {
+
+        CustomErrorMessage body = new CustomErrorMessage(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                e.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }

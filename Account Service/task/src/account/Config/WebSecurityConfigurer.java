@@ -32,8 +32,10 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .mvcMatchers("/api/auth/signup").permitAll()
+                .mvcMatchers("/api/acct/payments").permitAll()
                 .mvcMatchers("/actuator/shutdown").permitAll()
                 .mvcMatchers("/api/empl/payment").hasAuthority("USER")
+                .mvcMatchers("/api/auth/changepass").hasAnyAuthority("USER", "ADMIN")
                 .and()
                 .csrf().disable()
                 .httpBasic();
