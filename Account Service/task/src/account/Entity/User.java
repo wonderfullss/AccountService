@@ -14,7 +14,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -42,14 +45,17 @@ public class User implements UserDetails {
     @Size(min = 12)
     private String password;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Enumerated(EnumType.STRING)
-    @JsonIgnore
-    private Role role;
+    private List<Role> roles;
 
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toList());
     }
 
     @Override

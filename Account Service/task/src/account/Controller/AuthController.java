@@ -49,10 +49,20 @@ public class AuthController {
             else if (user.getPassword().length() < 12)
                 throw new passwordError("The password length must be at least 12 chars!");
             else {
-                user.setRole(Role.USER);
-                user.setPassword(encoder.encode(user.getPassword()));
-                userRepository.save(user);
-                return new ResponseEntity<>(user, HttpStatus.OK);
+                List<User> a = (List<User>) userRepository.findAll();
+                if (a.isEmpty()) {
+                    user.setEmail(user.getEmail().toLowerCase());
+                    user.setRoles(List.of(Role.ROLE_ADMINISTRATOR));
+                    user.setPassword(encoder.encode(user.getPassword()));
+                    userRepository.save(user);
+                    return new ResponseEntity<>(user, HttpStatus.OK);
+                } else {
+                    user.setEmail(user.getEmail().toLowerCase());
+                    user.setRoles(List.of(Role.ROLE_USER));
+                    user.setPassword(encoder.encode(user.getPassword()));
+                    userRepository.save(user);
+                    return new ResponseEntity<>(user, HttpStatus.OK);
+                }
             }
         } else {
             throw new EmailExistError("User exist!");
@@ -116,16 +126,16 @@ public class AuthController {
             }
             return new ResponseEntity<>(paymentByUserDTOS, HttpStatus.OK);
         } else {
-            List<PaymentByUserDTO> paymentByUserDTOS = new ArrayList<>();
+            PaymentByUserDTO paymentByUserDTOS = new PaymentByUserDTO();
             List<Payments> payments = paymentsRepository.findPaymentsByEmployeeAndPeriodOrderByPeriodDesc(getCurrentUser().getEmail(), period);
-            if(payments.size() == 0)
+            if (payments.size() == 0)
                 throw new paymentGetError("Error");
             for (Payments payment : payments) {
                 YearMonth tempYear = YearMonth.parse(payment.getPeriod(), DateTimeFormatter.ofPattern("MM-yyyy"));
                 String periodTemp = String.format("%s-%s".toLowerCase(), tempYear.getMonth(), tempYear.getYear());
                 periodTemp = periodTemp.substring(0, 1).toUpperCase() + periodTemp.substring(1).toLowerCase();
                 String salary = String.format("%d dollar(s) %d cent(s)", payment.getSalary() / 100, payment.getSalary() % 100);
-                paymentByUserDTOS.add(new PaymentByUserDTO(getCurrentUser().getName(), getCurrentUser().getLastname(),
+                paymentByUserDTOS = (new PaymentByUserDTO(getCurrentUser().getName(), getCurrentUser().getLastname(),
                         periodTemp, salary));
             }
             return new ResponseEntity<>(paymentByUserDTOS, HttpStatus.OK);

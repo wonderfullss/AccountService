@@ -3,8 +3,9 @@ package account.Entity;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum Role implements GrantedAuthority {
-    ADMIN("ROLE_ADMIN"),
-    USER("ROLE_USER");
+    ROLE_ACCOUNTANT("ACCOUNTANT"),
+    ROLE_ADMINISTRATOR("ADMINISTRATOR"),
+    ROLE_USER("USER");
 
     private String role;
 
