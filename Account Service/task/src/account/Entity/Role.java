@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 public enum Role implements GrantedAuthority {
     ROLE_ACCOUNTANT("ACCOUNTANT"),
     ROLE_ADMINISTRATOR("ADMINISTRATOR"),
+    ROLE_AUDITOR("AUDITOR"),
     ROLE_USER("USER");
 
     private String role;

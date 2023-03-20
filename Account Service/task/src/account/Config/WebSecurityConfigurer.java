@@ -40,6 +40,8 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/acct/payments").hasAuthority("ROLE_ACCOUNTANT")
                 .antMatchers(HttpMethod.PUT, "/api/acct/payments").hasAuthority("ROLE_ACCOUNTANT")
                 .mvcMatchers(HttpMethod.GET, "/api/admin/user").hasAuthority("ROLE_ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.GET, "api/admin/user/access").hasAuthority("ROLE_ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.GET, "/api/security/events").hasAuthority("ROLE_AUDITOR")
                 .antMatchers(HttpMethod.DELETE, "/api/admin/user/**").hasAuthority("ROLE_ADMINISTRATOR")
                 .antMatchers(HttpMethod.PUT, "/api/admin/user/role").hasAuthority("ROLE_ADMINISTRATOR")
                 .mvcMatchers("/actuator/shutdown").permitAll()

@@ -6,6 +6,7 @@ import account.Expection.passwordError;
 import account.Expection.paymentGetError;
 import account.Expection.paymentsUpdateError;
 import account.Repository.PaymentsRepository;
+import account.Repository.SecurityEventsRepository;
 import account.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,8 @@ import java.util.*;
 public class AuthController {
 
     private final UserRepository userRepository;
+
+    private final SecurityEventsRepository securityEventsRepository;
     private final PasswordEncoder encoder;
 
     private final PaymentsRepository paymentsRepository;
@@ -35,8 +38,9 @@ public class AuthController {
             "PasswordForSeptember", "PasswordForOctober", "PasswordForNovember", "PasswordForDecember");
 
     @Autowired
-    public AuthController(UserRepository userRepository, PasswordEncoder encoder, PaymentsRepository paymentsRepository) {
+    public AuthController(UserRepository userRepository, SecurityEventsRepository securityEventsRepository, PasswordEncoder encoder, PaymentsRepository paymentsRepository) {
         this.userRepository = userRepository;
+        this.securityEventsRepository = securityEventsRepository;
         this.encoder = encoder;
         this.paymentsRepository = paymentsRepository;
     }
@@ -55,12 +59,14 @@ public class AuthController {
                     user.setRoles(List.of(Role.ROLE_ADMINISTRATOR));
                     user.setPassword(encoder.encode(user.getPassword()));
                     userRepository.save(user);
+                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);
                 } else {
                     user.setEmail(user.getEmail().toLowerCase());
                     user.setRoles(List.of(Role.ROLE_USER));
                     user.setPassword(encoder.encode(user.getPassword()));
                     userRepository.save(user);
+                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);
                 }
             }
@@ -80,6 +86,7 @@ public class AuthController {
         getCurrentUser().setPassword(encoder.encode(changePasswordDTO.getNewPassword()));
         getCurrentUser().setEmail(getCurrentUser().getEmail().toLowerCase());
         userRepository.save(getCurrentUser());
+        securityEventsRepository.save(new SecurityEvents("CHANGE_PASSWORD", getCurrentUser().getEmail().toLowerCase(), getCurrentUser().getEmail().toLowerCase(), "/api/auth/changepass"));
         return new ResponseEntity<>(Map.of("email", getCurrentUser().getEmail(),
                 "status", "The password has been updated successfully"),
                 HttpStatus.OK);
