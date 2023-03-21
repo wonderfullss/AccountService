@@ -1,4 +1,4 @@
-package account.Expection;
+package account.Exception;
 
 import java.time.LocalDateTime;
 

@@ -14,9 +14,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
@@ -44,6 +42,11 @@ public class User implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Size(min = 12)
     private String password;
+
+    private boolean accountNonLocked;
+
+    @JsonIgnore
+    private int counter;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -73,7 +76,11 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
+    }
+
+    public void setAccountNonLocked(boolean a) {
+        this.accountNonLocked = a;
     }
 
     @Override

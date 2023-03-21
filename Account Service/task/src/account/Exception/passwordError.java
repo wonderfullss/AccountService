@@ -1,4 +1,4 @@
-package account.Expection;
+package account.Exception;
 
 public class passwordError extends RuntimeException {
     public passwordError(String message) {

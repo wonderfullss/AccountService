@@ -1,6 +1,6 @@
 package account.Config;
 
-import account.Expection.CustomAccessDeniedHandler;
+import account.Exception.CustomAccessDeniedHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +33,13 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http.httpBasic()
+                .and()
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
+                .and()
+                .csrf().disable().headers().frameOptions().disable() // for Postman, the H2 console
+                .and()
+                .authorizeRequests()
                 .mvcMatchers("/api/auth/signup").permitAll()
                 .mvcMatchers("/api/auth/changepass").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/empl/payment").hasAnyAuthority("ROLE_USER", "ROLE_ACCOUNTANT")
@@ -44,15 +50,7 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.GET, "/api/security/events").hasAuthority("ROLE_AUDITOR")
                 .antMatchers(HttpMethod.DELETE, "/api/admin/user/**").hasAuthority("ROLE_ADMINISTRATOR")
                 .antMatchers(HttpMethod.PUT, "/api/admin/user/role").hasAuthority("ROLE_ADMINISTRATOR")
-                .mvcMatchers("/actuator/shutdown").permitAll()
-                .and()
-                .csrf().disable()
-                .httpBasic();
-        http.authorizeRequests()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler());
+                .mvcMatchers("/actuator/shutdown").permitAll();
     }
 
     @Bean

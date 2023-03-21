@@ -1,10 +1,10 @@
 package account.Controller;
 
 import account.Entity.*;
-import account.Expection.EmailExistError;
-import account.Expection.passwordError;
-import account.Expection.paymentGetError;
-import account.Expection.paymentsUpdateError;
+import account.Exception.EmailExistError;
+import account.Exception.passwordError;
+import account.Exception.paymentGetError;
+import account.Exception.paymentsUpdateError;
 import account.Repository.PaymentsRepository;
 import account.Repository.SecurityEventsRepository;
 import account.Repository.UserRepository;
@@ -58,6 +58,7 @@ public class AuthController {
                     user.setEmail(user.getEmail().toLowerCase());
                     user.setRoles(List.of(Role.ROLE_ADMINISTRATOR));
                     user.setPassword(encoder.encode(user.getPassword()));
+                    user.setAccountNonLocked(true);
                     userRepository.save(user);
                     securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);
@@ -65,6 +66,7 @@ public class AuthController {
                     user.setEmail(user.getEmail().toLowerCase());
                     user.setRoles(List.of(Role.ROLE_USER));
                     user.setPassword(encoder.encode(user.getPassword()));
+                    user.setAccountNonLocked(true);
                     userRepository.save(user);
                     securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);

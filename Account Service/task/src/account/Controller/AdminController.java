@@ -1,13 +1,10 @@
 package account.Controller;
 
-import account.Entity.Role;
-import account.Entity.SecurityEvents;
-import account.Entity.UpdateUserRoleDTO;
-import account.Entity.User;
-import account.Expection.deleteAdminError;
-import account.Expection.emailNotFound;
-import account.Expection.roleNotFound;
-import account.Expection.userNoRole;
+import account.Entity.*;
+import account.Exception.deleteAdminError;
+import account.Exception.emailNotFound;
+import account.Exception.roleNotFound;
+import account.Exception.userNoRole;
 import account.Repository.SecurityEventsRepository;
 import account.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +35,23 @@ public class AdminController {
     }
 
     @PutMapping("/api/admin/user/access")
-    public ResponseEntity<?> access(){
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> access(@RequestBody LockUserDTO lockUserDTO) {
+        User user = userRepository.findUserByEmailIgnoreCase(lockUserDTO.getUser());
+        if (user == null)
+            throw new emailNotFound("User not found");
+        if (user.getRoles().contains(Role.ROLE_ADMINISTRATOR))
+            throw new deleteAdminError("Can't lock the ADMINISTRATOR!");
+        if (lockUserDTO.getOperation().equals("LOCK")) {
+            user.setAccountNonLocked(false);
+            userRepository.save(user);
+            securityEventsRepository.save(new SecurityEvents("LOCK_USER", lockUserDTO.getUser(), String.format("Lock user %s", lockUserDTO.getUser()), "/api/admin/user/access"));
+            return new ResponseEntity<>(Map.of("status", String.format("User %s locked!", lockUserDTO.getUser())), HttpStatus.OK);
+        } else {
+            user.setAccountNonLocked(true);
+            userRepository.save(user);
+            securityEventsRepository.save(new SecurityEvents("UNLOCK_USER", lockUserDTO.getUser(), String.format("Unlock user %s", lockUserDTO.getUser()), "/api/admin/user/access"));
+            return new ResponseEntity<>(Map.of("status", String.format("User %s unlocked!", lockUserDTO.getUser())), HttpStatus.OK);
+        }
     }
 
     @PutMapping("/api/admin/user/role")
