@@ -31,11 +31,15 @@ public class AdminController {
 
     @GetMapping("/api/admin/user")
     public ResponseEntity<?> getUser() {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         return new ResponseEntity<>(userRepository.findAllByOrderByIdAsc(), HttpStatus.OK);
     }
 
     @PutMapping("/api/admin/user/access")
     public ResponseEntity<?> access(@RequestBody LockUserDTO lockUserDTO) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         User user = userRepository.findUserByEmailIgnoreCase(lockUserDTO.getUser());
         if (user == null)
             throw new emailNotFound("User not found");
@@ -44,18 +48,20 @@ public class AdminController {
         if (lockUserDTO.getOperation().equals("LOCK")) {
             user.setAccountNonLocked(false);
             userRepository.save(user);
-            securityEventsRepository.save(new SecurityEvents("LOCK_USER", lockUserDTO.getUser(), String.format("Lock user %s", lockUserDTO.getUser()), "/api/admin/user/access"));
-            return new ResponseEntity<>(Map.of("status", String.format("User %s locked!", lockUserDTO.getUser())), HttpStatus.OK);
+            securityEventsRepository.save(new SecurityEvents("LOCK_USER", getCurrentUser().getEmail(), String.format("Lock user %s", lockUserDTO.getUser().toLowerCase()), "/api/admin/user/access"));
+            return new ResponseEntity<>(Map.of("status", String.format("User %s locked!", lockUserDTO.getUser().toLowerCase())), HttpStatus.OK);
         } else {
             user.setAccountNonLocked(true);
             userRepository.save(user);
-            securityEventsRepository.save(new SecurityEvents("UNLOCK_USER", lockUserDTO.getUser(), String.format("Unlock user %s", lockUserDTO.getUser()), "/api/admin/user/access"));
-            return new ResponseEntity<>(Map.of("status", String.format("User %s unlocked!", lockUserDTO.getUser())), HttpStatus.OK);
+            securityEventsRepository.save(new SecurityEvents("UNLOCK_USER", getCurrentUser().getEmail(), String.format("Unlock user %s", lockUserDTO.getUser().toLowerCase()), "/api/admin/user/access"));
+            return new ResponseEntity<>(Map.of("status", String.format("User %s unlocked!", lockUserDTO.getUser().toLowerCase())), HttpStatus.OK);
         }
     }
 
     @PutMapping("/api/admin/user/role")
     public ResponseEntity<?> updateRole(@RequestBody UpdateUserRoleDTO updateUserRoleDTO) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         List<String> temp = List.of("ACCOUNTANT", "ADMINISTRATOR", "USER", "AUDITOR");
         if (userRepository.findUserByEmailIgnoreCase(updateUserRoleDTO.getUser()) == null)
             throw new emailNotFound("User not found!");
@@ -73,7 +79,7 @@ public class AdminController {
                 user.getRoles().remove(Role.valueOf("ROLE_" + updateUserRoleDTO.getRole()));
                 Collections.sort(user.getRoles());
                 userRepository.save(user);
-                securityEventsRepository.save(new SecurityEvents("REMOVE_ROLE", getCurrentUser().getEmail().toLowerCase(), String.format("Remove role %s to %s", updateUserRoleDTO.getRole(), updateUserRoleDTO.getUser().toLowerCase()), "/api/admin/user/role"));
+                securityEventsRepository.save(new SecurityEvents("REMOVE_ROLE", getCurrentUser().getEmail().toLowerCase(), String.format("Remove role %s from %s", updateUserRoleDTO.getRole(), updateUserRoleDTO.getUser().toLowerCase()), "/api/admin/user/role"));
                 return new ResponseEntity<>(user, HttpStatus.OK);
             }
             case "GRANT" -> {
@@ -99,6 +105,8 @@ public class AdminController {
 
     @DeleteMapping("/api/admin/user/{email}")
     public ResponseEntity<?> deleteUser(@PathVariable String email) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         if (userRepository.findUserByEmailIgnoreCase(email) == null)
             throw new emailNotFound("User not found!");
         if (userRepository.findUserByEmailIgnoreCase(email).getRoles().contains(Role.ROLE_ADMINISTRATOR))

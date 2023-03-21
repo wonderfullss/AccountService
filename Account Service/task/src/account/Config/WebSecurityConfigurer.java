@@ -1,6 +1,7 @@
 package account.Config;
 
 import account.Exception.CustomAccessDeniedHandler;
+import account.Exception.RestAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,10 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableWebSecurity
 @Configuration
 public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    RestAuthenticationEntryPoint authenticationEntryPoint;
+
     private final UserDetailsService userDetailsService;
 
     @Autowired
@@ -34,10 +39,13 @@ public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic()
+                .authenticationEntryPoint(authenticationEntryPoint)
                 .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler())
+                .csrf().disable()
+                .headers().frameOptions().disable()
                 .and()
-                .csrf().disable().headers().frameOptions().disable() // for Postman, the H2 console
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler())
                 .and()
                 .authorizeRequests()
                 .mvcMatchers("/api/auth/signup").permitAll()

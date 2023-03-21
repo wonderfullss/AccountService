@@ -60,7 +60,7 @@ public class AuthController {
                     user.setPassword(encoder.encode(user.getPassword()));
                     user.setAccountNonLocked(true);
                     userRepository.save(user);
-                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
+                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail().toLowerCase(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);
                 } else {
                     user.setEmail(user.getEmail().toLowerCase());
@@ -68,7 +68,7 @@ public class AuthController {
                     user.setPassword(encoder.encode(user.getPassword()));
                     user.setAccountNonLocked(true);
                     userRepository.save(user);
-                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail(), "/api/auth/signup"));
+                    securityEventsRepository.save(new SecurityEvents("CREATE_USER", "Anonymous", user.getEmail().toLowerCase(), "/api/auth/signup"));
                     return new ResponseEntity<>(user, HttpStatus.OK);
                 }
             }
@@ -79,6 +79,8 @@ public class AuthController {
 
     @PostMapping("/api/auth/changepass")
     public ResponseEntity<?> changePass(@RequestBody ChangePasswordDTO changePasswordDTO) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         if (breachPass.contains(changePasswordDTO.getNewPassword()))
             throw new passwordError("The password is in the hacker's database!");
         if (changePasswordDTO.getNewPassword().length() < 12)
@@ -96,6 +98,8 @@ public class AuthController {
 
     @PostMapping("/api/acct/payments")
     public ResponseEntity<?> payments(@RequestBody @Valid List<Payments> payments) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         List<Payments> temp = new ArrayList<>();
         for (Payments payment : payments) {
             if (paymentsRepository.findByPeriodAndEmployee(payment.getPeriod(), payment.getEmployee()) == null && !temp.contains(payment))
@@ -109,6 +113,8 @@ public class AuthController {
 
     @PutMapping("/api/acct/payments")
     public ResponseEntity<?> updatePayments(@RequestBody Payments payments) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         if (paymentsRepository.findByPeriodAndEmployee(payments.getPeriod(), payments.getEmployee()) != null) {
             Payments temp = paymentsRepository.findByPeriodAndEmployee(payments.getPeriod(), payments.getEmployee());
             temp.setSalary(payments.getSalary());
@@ -122,6 +128,8 @@ public class AuthController {
 
     @GetMapping("/api/empl/payment")
     public ResponseEntity<?> payment(@RequestParam(required = false) String period) {
+        getCurrentUser().setCounter(0);
+        userRepository.save(getCurrentUser());
         if (period == null) {
             List<PaymentByUserDTO> paymentByUserDTOS = new ArrayList<>();
             List<Payments> payments = paymentsRepository.findPaymentsByEmployeeOrderByPeriodDesc(getCurrentUser().getEmail());
